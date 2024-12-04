@@ -41,7 +41,7 @@ divorce_clean <- divorce_clean |>
   )
   
 #### Save divorce data ####
-write_csv(divorce_clean, "data/02-analysis_data/divorce_cleaned.cvs")
+write_csv(divorce_clean, "data/02-analysis_data/divorce_cleaned.csv")
 write_parquet(divorce_clean, "data/02-analysis_data/divorce_cleaned.parquet")
 
 #### Clean marriage data ####
@@ -94,5 +94,6 @@ marriage_clean <- marriage_clean |>
   )
 
 #### Save divorce data ####
-write_csv(marriage_clean, "data/02-analysis_data/marriage_cleaned.cvs")
+write_csv(marriage_clean, "data/02-analysis_data/marriage_cleaned.csv")
 write_parquet(marriage_clean, "data/02-analysis_data/marriage_cleaned.parquet")
+
