@@ -1,52 +1,80 @@
 #### Preamble ####
-# Purpose: Simulates a dataset of Australian electoral divisions, including the 
-  #state and party that won each division.
-# Author: Rohan Alexander
-# Date: 26 September 2024
-# Contact: rohan.alexander@utoronto.ca
+# Purpose: Simulates a dataset of divorce and marriage rates over time 
+  #inclduing age range in marriage
+# Author: Sarah Lee
+# Date: 28 November 2024
+# Contact: sarahhhh.lee@mail.utoronto.ca 
 # License: MIT
 # Pre-requisites: The `tidyverse` package must be installed
-# Any other information needed? Make sure you are in the `starter_folder` rproj
+# Any other information needed? Make sure you are in the `divorce-marriage` rproj
 
 
 #### Workspace setup ####
 library(tidyverse)
+
+#set seed for reproducibility 
 set.seed(853)
 
-
 #### Simulate data ####
-# State names
-states <- c(
-  "New South Wales",
-  "Victoria",
-  "Queensland",
-  "South Australia",
-  "Western Australia",
-  "Tasmania",
-  "Northern Territory",
-  "Australian Capital Territory"
+
+###correlation between divorce and marriage###
+n <- 100  # number of observations
+marriage_rate <- rnorm(n, mean = 6, sd = 1)  # Marriage rate per 1,000 people
+
+# Simulate divorce rate with a positive correlation to marriage rate
+divorce_rate <- 0.5 * marriage_rate + rnorm(n, mean = 0, sd = 0.5)
+
+# Combine into a data frame
+simulated_data1 <- data.frame(
+  MarriageRate = marriage_rate,
+  DivorceRate = divorce_rate
 )
 
-# Political parties
-parties <- c("Labor", "Liberal", "Greens", "National", "Other")
+# View the first few rows
+head(simulated_data1)
 
-# Create a dataset by randomly assigning states and parties to divisions
-analysis_data <- tibble(
-  division = paste("Division", 1:151),  # Add "Division" to make it a character
-  state = sample(
-    states,
-    size = 151,
-    replace = TRUE,
-    prob = c(0.25, 0.25, 0.15, 0.1, 0.1, 0.1, 0.025, 0.025) # Rough state population distribution
-  ),
-  party = sample(
-    parties,
-    size = 151,
-    replace = TRUE,
-    prob = c(0.40, 0.40, 0.05, 0.1, 0.05) # Rough party distribution
-  )
+###changes over time in divorce and marriage over years for age###
+year <- 1970:2020
+age_ranges <- c("under 20", "20-24", "25-29", "30-34", "35-39", "40-44", "45-49", 
+                "50-54", "55-59", "60-64", "65-69", "70-74", "75-79", "over 80") 
+
+# Create a data frame
+simulated_data2 <- expand.grid(
+  Year = year,
+  AgeRange = age_ranges
 )
+
+n <- nrow(simulated_data2)  # Number of rows in simulated_data
+
+# Simulate marriage rates with age-specific trends
+simulated_data2$MarriageRate <- with(simulated_data2,
+                                    ifelse(AgeRange == "under 20", 
+                                           10 - 0.2 * (Year - min(Year)) + rnorm(n, 0, 0.5),  # Sharp decline
+                                           ifelse(AgeRange %in% c("20-24", "25-29"), 
+                                                  8 - 0.1 * (Year - min(Year)) + rnorm(n, 0, 0.5),  # Gradual decline
+                                                  ifelse(AgeRange %in% c("30-34", "35-39"), 
+                                                         5 + 0.05 * (Year - min(Year)) + rnorm(n, 0, 0.4),  # Slight increase
+                                                         2 + 0.02 * (Year - min(Year)) + rnorm(n, 0, 0.3)))))  # Slow increase for older ages
+
+# Simulate divorce rates based on marriage rates and age-specific adjustments
+simulated_data2$DivorceRate <- with(simulated_data2,
+                                   0.4 * MarriageRate + 
+                                     ifelse(AgeRange == "under 20", 
+                                            0.1 * (Year - min(Year)),  # Gradual increase for younger groups
+                                            ifelse(AgeRange %in% c("20-24", "25-29"), 
+                                                   0.05 * (Year - min(Year)),  # Moderate increase
+                                                   ifelse(AgeRange %in% c("30-34", "35-39"), 
+                                                          -0.02 * (Year - min(Year)),  # Slight decline
+                                                          -0.01 * (Year - min(Year)))))) + 
+  rnorm(n, 0, 0.3)  # Noise
+
+
+# View the first few rows to check the data
+head(simulated_data2)
+
 
 
 #### Save data ####
-write_csv(analysis_data, "data/00-simulated_data/simulated_data.csv")
+write_csv(simulated_data1, "data/00-simulated_data/simulated_data1.csv")
+write_csv(simulated_data2, "data/00-simulated_data/simulated_data2.csv")
+

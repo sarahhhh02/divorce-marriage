@@ -14,7 +14,8 @@
 #### Workspace setup ####
 library(tidyverse)
 
-analysis_data <- read_csv("data/00-simulated_data/simulated_data.csv")
+# Load dataset
+analysis_data <- read_csv("data/00-simulated_data/simulated_data2.csv")  # Update with your actual data file path
 
 # Test if the data was successfully loaded
 if (exists("analysis_data")) {
@@ -23,67 +24,63 @@ if (exists("analysis_data")) {
   stop("Test Failed: The dataset could not be loaded.")
 }
 
-
 #### Test data ####
 
-# Check if the dataset has 151 rows
+# Check if the dataset has 151 rows (update based on the number of rows in your dataset)
 if (nrow(analysis_data) == 151) {
   message("Test Passed: The dataset has 151 rows.")
 } else {
   stop("Test Failed: The dataset does not have 151 rows.")
 }
 
-# Check if the dataset has 3 columns
-if (ncol(analysis_data) == 3) {
-  message("Test Passed: The dataset has 3 columns.")
+# Check if the dataset has the expected number of columns (3 or more, depending on your data)
+if (ncol(analysis_data) >= 3) {
+  message("Test Passed: The dataset has the expected number of columns.")
 } else {
-  stop("Test Failed: The dataset does not have 3 columns.")
+  stop("Test Failed: The dataset does not have the expected number of columns.")
 }
 
-# Check if all values in the 'division' column are unique
-if (n_distinct(analysis_data$division) == nrow(analysis_data)) {
-  message("Test Passed: All values in 'division' are unique.")
-} else {
-  stop("Test Failed: The 'division' column contains duplicate values.")
-}
-
-# Check if the 'state' column contains only valid Australian state names
-valid_states <- c("New South Wales", "Victoria", "Queensland", "South Australia", 
-                  "Western Australia", "Tasmania", "Northern Territory", 
-                  "Australian Capital Territory")
-
-if (all(analysis_data$state %in% valid_states)) {
-  message("Test Passed: The 'state' column contains only valid Australian state names.")
-} else {
-  stop("Test Failed: The 'state' column contains invalid state names.")
-}
-
-# Check if the 'party' column contains only valid party names
-valid_parties <- c("Labor", "Liberal", "Greens", "National", "Other")
-
-if (all(analysis_data$party %in% valid_parties)) {
-  message("Test Passed: The 'party' column contains only valid party names.")
-} else {
-  stop("Test Failed: The 'party' column contains invalid party names.")
-}
-
-# Check if there are any missing values in the dataset
+# Check if there are no missing values in the dataset
 if (all(!is.na(analysis_data))) {
   message("Test Passed: The dataset contains no missing values.")
 } else {
   stop("Test Failed: The dataset contains missing values.")
 }
 
-# Check if there are no empty strings in 'division', 'state', and 'party' columns
-if (all(analysis_data$division != "" & analysis_data$state != "" & analysis_data$party != "")) {
-  message("Test Passed: There are no empty strings in 'division', 'state', or 'party'.")
+# Check if the 'MarriageRate' and 'DivorceRate' columns are numeric (as expected for rate data)
+if (is.numeric(analysis_data$MarriageRate) & is.numeric(analysis_data$DivorceRate)) {
+  message("Test Passed: 'MarriageRate' and 'DivorceRate' columns are numeric.")
 } else {
-  stop("Test Failed: There are empty strings in one or more columns.")
+  stop("Test Failed: 'MarriageRate' or 'DivorceRate' columns are not numeric.")
 }
 
-# Check if the 'party' column has at least two unique values
-if (n_distinct(analysis_data$party) >= 2) {
-  message("Test Passed: The 'party' column contains at least two unique values.")
+# Check if 'Year' is a valid numeric or integer type (this is important for time-related analysis)
+if (is.numeric(analysis_data$Year)) {
+  message("Test Passed: 'Year' column is numeric.")
 } else {
-  stop("Test Failed: The 'party' column contains less than two unique values.")
+  stop("Test Failed: 'Year' column is not numeric.")
+}
+
+# Check if the 'AgeRange' column contains expected age groups (this assumes 'AgeRange' is in the dataset)
+valid_age_ranges <- c("under 20", "20-24", "25-29", "30-34", "35-39", "40-44", "45-49", 
+                      "50-54", "55-59", "60-64", "65-69", "70-74", "75-79", "over 80")
+
+if (all(analysis_data$AgeRange %in% valid_age_ranges)) {
+  message("Test Passed: The 'AgeRange' column contains only valid age ranges.")
+} else {
+  stop("Test Failed: The 'AgeRange' column contains invalid age ranges.")
+}
+
+# Check if there are no empty strings in 'AgeRange', 'MarriageRate', or 'DivorceRate' columns
+if (all(analysis_data$AgeRange != "" & !is.na(analysis_data$MarriageRate) & !is.na(analysis_data$DivorceRate))) {
+  message("Test Passed: There are no empty strings or NA values in critical columns.")
+} else {
+  stop("Test Failed: There are empty strings or NA values in one or more critical columns.")
+}
+
+# Check if there are at least two unique age ranges in the 'AgeRange' column
+if (n_distinct(analysis_data$AgeRange) >= 2) {
+  message("Test Passed: The 'AgeRange' column contains at least two unique values.")
+} else {
+  stop("Test Failed: The 'AgeRange' column contains less than two unique values.")
 }
