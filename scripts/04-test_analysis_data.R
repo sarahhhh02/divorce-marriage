@@ -1,69 +1,83 @@
 #### Preamble ####
-# Purpose: Tests... [...UPDATE THIS...]
-# Author: Rohan Alexander [...UPDATE THIS...]
-# Date: 26 September 2024 [...UPDATE THIS...]
-# Contact: rohan.alexander@utoronto.ca [...UPDATE THIS...]
+# Purpose: Tests cleaned version of marriage and divorce data
+# Author: Sarah Lee
+# Date: 28 Novemeber 2024
+# Contact: sarahhhh.lee@mail.utoronto.ca 
 # License: MIT
-# Pre-requisites: [...UPDATE THIS...]
-# Any other information needed? [...UPDATE THIS...]
-
 
 #### Workspace setup ####
 library(tidyverse)
 library(testthat)
 
-data <- read_csv("data/02-analysis_data/analysis_data.csv")
-
+data <- read_csv("data/02-analysis_data/divorce_cleaned.csv")
 
 #### Test data ####
-# Test that the dataset has 151 rows - there are 151 divisions in Australia
-test_that("dataset has 151 rows", {
-  expect_equal(nrow(analysis_data), 151)
+# Test that the dataset has 51 rows - there are 151 divisions in Australia
+test_that("dataset has 51 rows", {
+  expect_equal(nrow(analysis_data), 51)
 })
 
-# Test that the dataset has 3 columns
-test_that("dataset has 3 columns", {
-  expect_equal(ncol(analysis_data), 3)
+# Test that the dataset has 11 columns
+test_that("dataset has 11 columns", {
+  expect_equal(ncol(analysis_data), 11)
 })
 
-# Test that the 'division' column is character type
-test_that("'division' is character", {
-  expect_type(analysis_data$division, "character")
+# Test that the 'year' column is integer type (since the year is numerical)
+test_that("'year' is integer", {
+  expect_type(data$year, "integer")
 })
 
-# Test that the 'party' column is character type
-test_that("'party' is character", {
-  expect_type(analysis_data$party, "character")
+# Test that the 'divorce_num' column is numeric (divorce counts are numeric)
+test_that("'divorce_num' is numeric", {
+  expect_type(data$divorce_num, "double")
 })
 
-# Test that the 'state' column is character type
-test_that("'state' is character", {
-  expect_type(analysis_data$state, "character")
+# Test that the 'divorce_crude' column is numeric
+test_that("'divorce_crude' is numeric", {
+  expect_type(data$divorce_crude, "double")
 })
 
 # Test that there are no missing values in the dataset
 test_that("no missing values in dataset", {
-  expect_true(all(!is.na(analysis_data)))
+  expect_true(all(!is.na(data)))
 })
 
-# Test that 'division' contains unique values (no duplicates)
-test_that("'division' column contains unique values", {
-  expect_equal(length(unique(analysis_data$division)), 151)
+# Test that 'year' contains unique values (there should be one entry per year)
+test_that("'year' column contains unique values", {
+  expect_equal(length(unique(data$year)), 51)
 })
 
-# Test that 'state' contains only valid Australian state or territory names
-valid_states <- c("New South Wales", "Victoria", "Queensland", "South Australia", "Western Australia", 
-                  "Tasmania", "Northern Territory", "Australian Capital Territory")
-test_that("'state' contains valid Australian state names", {
-  expect_true(all(analysis_data$state %in% valid_states))
+# Test that 'divorce_rate' column contains no missing values
+test_that("'divorce_rate' contains no missing values", {
+  expect_true(all(!is.na(data$divorce_rate)))
 })
 
-# Test that there are no empty strings in 'division', 'party', or 'state' columns
-test_that("no empty strings in 'division', 'party', or 'state' columns", {
-  expect_false(any(analysis_data$division == "" | analysis_data$party == "" | analysis_data$state == ""))
+# Test that the 'divorce_age' column is numeric (the age should be a number)
+test_that("'divorce_age' is numeric", {
+  expect_type(data$divorce_age, "double")
 })
 
-# Test that the 'party' column contains at least 2 unique values
-test_that("'party' column contains at least 2 unique values", {
-  expect_true(length(unique(analysis_data$party)) >= 2)
+# Test that the 'divorce_30' column is numeric
+test_that("'divorce_30' is numeric", {
+  expect_type(data$divorce_30, "double")
+})
+
+# Test that the 'divorce_50' column is numeric
+test_that("'divorce_50' is numeric", {
+  expect_type(data$divorce_50, "double")
+})
+
+# Test that there are no empty strings in 'year', 'divorce_num', or 'divorce_crude' columns
+test_that("no empty strings in 'year', 'divorce_num', or 'divorce_crude' columns", {
+  expect_false(any(data$year == "" | data$divorce_num == "" | data$divorce_crude == ""))
+})
+
+# Test that the 'divorce_num' column contains only positive values (there should be no negative divorce counts)
+test_that("'divorce_num' contains only positive values", {
+  expect_true(all(data$divorce_num > 0))
+})
+
+# Test that 'divorce_rate' column does not have values greater than 10 (reasonable range based on the data)
+test_that("'divorce_rate' does not exceed 10", {
+  expect_true(all(data$divorce_rate <= 10))
 })
