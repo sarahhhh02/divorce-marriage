@@ -1,12 +1,12 @@
 ---
 title: "Marriage and Divorce Rates Over the Years: Analyzing Trends by Age Group"
-subtitle: "Marriage rates have generally declined across age groups from 1991 to 2014, while divorce rates show varied patterns, with younger age groups experiencing more significant changes."
+subtitle: "Between the years 1991 to 2014"
 author: 
   - Sarah Lee
 thanks: "Code and data are available at: https://github.com/sarahhhh02/divorce-marriage.git"
 date: today
 date-format: long
-abstract: "This paper explores the relationship between marriage and divorce rates over time, focusing on how both total marriage rates and age-specific marriage behaviors influence divorce patterns. Using two Bayesian regression models, we find that while marriage rates have a small but significant effect on divorce rates, younger age groups have a more pronounced impact on overall marriage trends. These findings suggest that shifts in marriage behavior, particularly among younger individuals, play a key role in shaping broader societal trends in marriage and divorce. Understanding these dynamics is crucial for informing policies aimed at addressing marriage and divorce in a rapidly changing social landscape."
+abstract: "This paper explores the relationship between marriage and divorce rates over time, focusing on how both total marriage rates and age-specific marriage behaviors influence divorce patterns. Using two Bayesian regression models, we find that while marriage rates have a small but significant effect on divorce rates, younger age groups have a more pronounced impact on overall marriage trends. These findings suggest that shifts in marriage behavior, play a key role in shaping broader societal trends in marriage and divorce. Understanding these dynamics is crucial for informing policies aimed at addressing marriage and divorce in a rapidly changing social landscape."
 format: pdf
 number-sections: true
 bibliography: references.bib
@@ -154,8 +154,6 @@ ggplot(divorce_clean, aes(x = year, y = divorce_num)) +
        y = "Number of Divorces") +
   theme_minimal()
 
-summary(divorce_clean$divorce_num)
-
 ```
 
 The number of divorces in Canada has decreased since the early 1990s, dropping from 78,954 in 1991 to around 56,937 by 2019.
@@ -189,12 +187,6 @@ ggplot(combined_data) +
   theme_minimal() +
   theme(plot.title = element_text(hjust = 0.5))  # Center title
 
-# Summary of the entire combined dataset
-summary(combined_data)
-
-# Summary of specific columns (e.g., marriage rate and divorce rate)
-summary(combined_data$total_mRate)
-summary(combined_data$divorce_rate)
 
 ```
 
@@ -214,9 +206,6 @@ While both rates show upward trends, the marriage rate shows more variation than
 
 ### Marriage and Age Range
 
-Over time, Canadians who are married have become older during this period, while younger generations are opting for common-law unions instead of getting married [@divorce_trend].
-With older adults making up for a larger portion of the married population compared to younger people.
-Below in (@fig-3) show the comparison between marriage rates per age group over the course of 1991 to 2020.
 
 ```{r}
 #| label: fig-3
@@ -252,21 +241,20 @@ ggplot(data_long, aes(x = year, y = marriage_rate, color = age_group, group = ag
     legend.position = "bottom"
   )
 
-# Summary of the entire dataset
-summary(data_long)
-
-# Summary of specific variables (e.g., marriage_rate)
-summary(data_long$marriage_rate)
-
 
 ```
+
+
+Over time, Canadians who are married have become older during this period, while younger generations are opting for common-law unions instead of getting married [@divorce_trend].
+With older adults making up for a larger portion of the married population compared to younger people.
+Below in (@fig-3) show the comparison between marriage rates per age group over the course of 1991 to 2020.
 
 Marriage rate reveal a significant variation across different age groups over time with the minimum marriage rate being very low at 0.50, while the maximum is high at 83.1.
 Indicating that some groups or years had significantly lower or higher rates.
 The median marriage rate is 14.00, and the mean is 19.22, suggesting that marriage rates have been generally moderate over the years, with a slight skew toward higher values.
 The interquartile range from 4.20 to 27.10, show that most values are clustered within a certain range, though extreme values exist.
 
-# Model {#model}
+# Model
 
 Here we briefly describe the Bayesian analysis model used to investigate the relationship between divorce and marriage rates as well as how age range plays part into marriage.
 Background details and diagnostics are included in [Appendix -@sec-model-details].
