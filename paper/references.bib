@@ -1,5 +1,3 @@
-
-
 @Manual{citeR,
     title = {{R: A Language and Environment for Statistical Computing}},
     author = {{R Core Team}},
@@ -9,8 +7,7 @@
     url = {https://www.R-project.org/},
   }
   
-  
-@Article{thereferencecanbewhatever,
+@Article{tidyverse,
     title = {Welcome to the {tidyverse}},
     author = {Hadley Wickham and Mara Averick and Jennifer Bryan and Winston Chang and Lucy D'Agostino McGowan and Romain François and Garrett Grolemund and Alex Hayes and Lionel Henry and Jim Hester and Max Kuhn and Thomas Lin Pedersen and Evan Miller and Stephan Milton Bache and Kirill Müller and Jeroen Ooms and David Robinson and Dana Paige Seidel and Vitalie Spinu and Kohske Takahashi and Davis Vaughan and Claus Wilke and Kara Woo and Hiroaki Yutani},
     year = {2019},
@@ -19,29 +16,25 @@
     number = {43},
     pages = {1686},
     doi = {10.21105/joss.01686},
-  }  
-  
-  
-@Manual{citeLahman,
-    title = {{Lahman: Sean `Lahman' Baseball Database}},
-    author = {Michael Friendly and Chris Dalzell and Martin Monkman and Dennis Murphy},
-    year = {2020},
-    note = {R package version 8.0-0},
-    url = {https://CRAN.R-project.org/package=Lahman},
-  }  
-  
-  
-@article{gebru2021datasheets,
-  title={Datasheets for datasets},
-  author={Gebru, Timnit and Morgenstern, Jamie and Vecchione, Briana and Vaughan, Jennifer Wortman and Wallach, Hanna and Iii, Hal Daum{\'e} and Crawford, Kate},
-  journal={Communications of the ACM},
-  volume={64},
-  number={12},
-  pages={86--92},
-  year={2021},
-  publisher={ACM New York, NY, USA}
-}
+  }
 
+@Manual{dplyr,
+  title = {dplyr: A Grammar of Data Manipulation},
+  author = {Hadley Wickham and Romain François and Lionel Henry and Kirill Müller and Davis Vaughan},
+  year = {2023},
+  note = {R package version 1.1.4, https://github.com/tidyverse/dplyr},
+  url = {https://dplyr.tidyverse.org},
+}
+ 
+@manual{arrow,
+    title = {Arrow: In-Memory Columnar Data},
+    author = {Wes McKinney and others},
+    organization = {Apache Software Foundation},
+    address = {United States},
+    year = {2022},
+    url = {https://arrow.apache.org/docs/r/},
+}
+ 
 @Misc{rstanarm,
     title = {{rstanarm: {Bayesian} applied regression modeling via {Stan}}},
     author = {Ben Goodrich and Jonah Gabry and Imad Ali and Sam Brilleman},
@@ -50,16 +43,6 @@
     url = {https://mc-stan.org/rstanarm/},
   }
   
-@Manual{palmerpenguins,
-    title = {{palmerpenguins: Palmer Archipelago (Antarctica) penguin data}},
-    author = {Allison Marie Horst and Alison Presmanes Hill and Kristen B Gorman},
-    year = {2020},
-    note = {R package version 0.1.0},
-    doi = {10.5281/zenodo.3960218},
-    url = {https://allisonhorst.github.io/palmerpenguins/},
-  }
-  
-  
 @book{tellingstories,
     title = {Telling Stories with Data},
     author = {Rohan Alexander},
@@ -67,13 +50,90 @@
     publisher = {Chapman; Hall/CRC},
     url = {https://tellingstorieswithdata.com/}
   }  
-  
-  
 
-@Manual{shelter,
-    title = {Deaths of Shelter Residents},
-    author = {{Toronto Shelter & Support Services}},
+@BOOK{ggplot2,
+  title     = "Ggplot2: Elegant graphics for data analysis",
+  author    = "Wickham, Hadley",
+  publisher = "Springer International Publishing",
+  series    = "Use R!",
+  edition   =  2,
+  month     =  jun,
+  year      =  2016,
+  address   = "Cham, Switzerland",
+  language  = "en",
+  isbn      = "9783319242774"
+} 
+  
+@Manual{rknitr,
+    title = {knitr: A General-Purpose Package for Dynamic Report
+      Generation in R},
+    author = {Yihui Xie},
+    year = {2023},
+    note = {R package version 1.45},
+    url = {https://yihui.org/knitr/},
+  }
+  
+@Book{rknitr,
+    title = {Dynamic Documents with {R} and knitr},
+    author = {Yihui Xie},
+    publisher = {Chapman and Hall/CRC},
+    address = {Boca Raton, Florida},
+    year = {2015},
+    edition = {2nd},
+    note = {ISBN 978-1498716963},
+    url = {https://yihui.org/knitr/},
+  }
+  
+@InCollection{rknitr,
+    booktitle = {Implementing Reproducible Computational Research},
+    editor = {Victoria Stodden and Friedrich Leisch and Roger D. Peng},
+    title = {knitr: A Comprehensive Tool for Reproducible Research in
+      {R}},
+    author = {Yihui Xie},
+    publisher = {Chapman and Hall/CRC},
+    year = {2014},
+    note = {ISBN 978-1466561595},
+  }
+ 
+@manual{divorce,
+    title = {Labour Force Survey, December 2024},
+    author = {Statistics Canada},
+    organization = {Statistics Canada},
+    address = {Canada},
     year = {2024},
-    note = {As accessed 2024-10-02.},
-    url = {https://open.toronto.ca/dataset/deaths-of-shelter-residents/},
-  }  
+    url = {https://www150.statcan.gc.ca/t1/tbl1/en/cv.action?pid=3910005101},
+}
+
+@manual{marriage,
+    title = {Labour Force Survey, 1991–2020},
+    author = {Statistics Canada},
+    organization = {Statistics Canada},
+    address = {Canada},
+    year = {2024},
+    url = {https://www150.statcan.gc.ca/t1/tbl1/en/tv.action?pid=3910005701&pickMembers%5B0%5D=1.1&pickMembers%5B1%5D=2.1&pickMembers%5B2%5D=3.1&pickMembers%5B3%5D=5.2&cubeTimeFrame.startYear=1991&cubeTimeFrame.endYear=2020&referencePeriods=19910101%2C20200101},
+}
+
+@manual{divorce_trend,
+  title        = {Divorces in Canada, 2020},
+  author       = {{Statistics Canada}},
+  year         = {2022},
+  url          = {https://www150.statcan.gc.ca/n1/daily-quotidien/220309/dq220309a-eng.htm},
+  note         = {Accessed: 2024-12-03},
+  organization = {Statistics Canada},
+  address      = {Canada}
+}
+
+@manual{cbc_history_2024,
+  title        = {History of Canada: The Quiet Revolution},
+  author       = {{CBC}},
+  year         = {2024},
+  url          = {https://www.cbc.ca/history/EPISCONTENTSE1EP17CH2PA4LE.html},
+  note         = {Accessed: 2024-12-03},
+  organization = {Canadian Broadcasting Corporation},
+  address      = {Canada}
+}
+
+
+
+
+ 

@@ -1,16 +1,18 @@
 ---
-title: "My title"
-subtitle: "My subtitle if needed"
+title: "Marriage and Divorce Rates Over the Years: Analyzing Trends by Age Group"
+subtitle: "Marriage rates have generally declined across age groups from 1991 to 2014, while divorce rates show varied patterns, with younger age groups experiencing more significant changes."
 author: 
-  - First author
-  - Another author
-thanks: "Code and data are available at: [https://github.com/RohanAlexander/starter_folder](https://github.com/RohanAlexander/starter_folder)."
+  - Sarah Lee
+thanks: "Code and data are available at: https://github.com/sarahhhh02/divorce-marriage.git"
 date: today
 date-format: long
-abstract: "First sentence. Second sentence. Third sentence. Fourth sentence."
+abstract: "This paper explores the relationship between marriage and divorce rates over time, focusing on how both total marriage rates and age-specific marriage behaviors influence divorce patterns. Using two Bayesian regression models, we find that while marriage rates have a small but significant effect on divorce rates, younger age groups have a more pronounced impact on overall marriage trends. These findings suggest that shifts in marriage behavior, particularly among younger individuals, play a key role in shaping broader societal trends in marriage and divorce. Understanding these dynamics is crucial for informing policies aimed at addressing marriage and divorce in a rapidly changing social landscape."
 format: pdf
 number-sections: true
 bibliography: references.bib
+editor: 
+  markdown: 
+    wrap: sentence
 ---
 
 ```{r}
@@ -19,129 +21,316 @@ bibliography: references.bib
 #| message: false
 
 library(tidyverse)
-library(palmerpenguins)
-```
+library(arrow)
+library(ggplot2)
+library(dplyr)
+library(rstanarm)
 
+##call data from folders##
+divorce_clean <- read_parquet(here::here("data/02-analysis_data/divorce_cleaned.parquet"))
+marriage_clean <- read_parquet(here::here("data/02-analysis_data/marriage_cleaned.parquet"))
+
+```
 
 # Introduction
 
-Overview paragraph
+Marriage and divorce rates have been key topics to understanding family structures and societal changes.
+These rates reflect not just personal decisions but also the broader social, economic, and cultural trends.
+Over the past century, perception of marriage have shifted to being more independent and personal.
+While research has examined the factors that influence marriage and divorce separately, there is not much on the how the two interact overtime.
+Understanding this relationship is important for policymakers and economists who are concerned with their impact on family stability, population growth, and economic development.
 
-Estimand paragraph
+This paper explores the relationship between marriage and divorce rates, addressing the gap in existing researches.
+It investigates how changes in divorce rates influence marriage rates, and thus result in fewer or the delay of marriages.
+With some couples who prefer in common relationships over marriage.
+This paper seeks to clarify this relationship by examining the effects of changes in one rate on the other, using time-series data over a period of several decades.
+To explore this relationship, we use a series of Bayesian regression models to access the connection between marriage and divorce rates.
+Moreover, we will analyze how marriage look like in certain age groups.
+By controlling key factors such as economic conditions and demographics, it allows for a clearer understanding of the dynamic interplay between these variables.
+The findings reveal a significant yet complex relationship, showing divorce rates having a delayed but measurable impact on marriage rates.
+Additionally, the results show that economic factors, particularly during periods of economic instability which effects of these rates on one another.
 
-Results paragraph
+This study is important for helping policymakers and social scientists to understand the factors that shape trends in family formation and dissolution.
+By understanding this relationship, it offers more insight to develop and address the challenges posed by these trends.
 
-Why it matters paragraph
+# Data {#data}
 
-Telegraphing paragraph: The remainder of this paper is structured as follows. @sec-data....
+## Data Management
 
+We use the statistical programming language R [@citeR], along with several packages, tidyverse [@tidyverse], [@dplyr], [@arrow], and [@rstanarm].
+All figures in this paper were created using the packages [@ggplot2] and the tables were created using [@rknitr]
 
+## Source {#source}
 
+The data for this study was sourced from the Statistics Canada's "Number of divorces and divorce indicators" data set [@divorce] which provides an overview of divorce statistics in Canada from 1970 to 2020.
+It also includes both the total number of divorces and the rates per 1000 married persons.
+Additionally, we used the "Number of persons who married in a given year and marriage rate per 1000 unmarried persons, by age group and legal martial status" data set [@marriage], which provide statistics on marriage in Canada from 1991 to 2020, including the rate by each age group.
 
+Divorce data is collected through the Central Registry of Divorce Proceedings (CRDP), which tracks all pending or completed divorce cases in Canada.
+Established in 1968, the CRDP operates under the Department of Justice Canada and is responsible for registering all divorce cases.
+Individuals must file an application to the court for divorce which is then sent to the CRDP to verify that there are no duplicate proceedings.
+The CRDP collects key data, including court details, dates, applicants' information, and marriage and divorce dates.
+This data is combined with population estimates and marriage counts to calculate various divorce rates.
+Participation in the data collection process is mandatory where data are extracted from administrative files.
 
+Marriage data is a collected from all new marriages in Canada throughout provincial and territorial vital statistics registries.
+The data is used to calculate key marriage indicators, such as the total number of marriages, average age at marriage, and marriage rates.
+The data collection is a census with no sampling, and mandatory participation under a cooperative agreement between the federal and provincial/territorial governments.
+Data is extracted from administrative files and quality-checked by Statistics Canada.
+Confidentiality is ensured, and data coverage is generally complete.
 
-# Data {#sec-data}
+## Data Visualization
 
-## Overview
-
-We use the statistical programming language R [@citeR].... Our data [@shelter].... Following @tellingstories, we consider...
-
-Overview text
-
-## Measurement
-	
-Some paragraphs about how we go from a phenomena in the world to an entry in the dataset.
-
-## Outcome variables
-
-Add graphs, tables and text. Use sub-sub-headings for each outcome variable or update the subheading to be singular.
-
-
-
-Some of our data is of penguins (@fig-bills), from @palmerpenguins.
+In this study, the primary variables of interest are **marriage rates** and **divorce rates**, which represent key indicators of the frequency at which individuals enter into marriage and divorce among married couples.
+However, before using these variables for analysis, it is important to carefully consider how these real-world phenomena are measured and translated into usable data entries.
+Tables @tbl-marriagevariables and @tbl-divorcevariables show which variables are used from the cleaned data set and what they represent.
 
 ```{r}
-#| label: fig-bills
-#| fig-cap: Bills of penguins
+#| label: tbl-marriagevariables
+#| tbl-cap: Variables and their meanings for Marriage Data
 #| echo: false
+#| warning: false
 
-ggplot(penguins, aes(x = island, fill = species)) +
-  geom_bar(alpha = 0.8) +
-  scale_fill_manual(values = c("darkorange","purple","cyan4"),
-                    guide = "none") +
-  theme_minimal() +
-  facet_wrap(~species, ncol = 1) +
-  coord_flip()
+marriage_variables <- data.frame(
+  Variable = c("year", "total_married", "age_group_married", "total_mRate", "age_group_mRate"),
+  Description = c("Years between 1991 to 2020", 
+                  "Total number of persons who married for all age group", 
+                  "Total number of persons who married for selected age group", 
+                  "Marriage rate per 1000 persons for all age group", 
+                  "Marriage rate for 1000 persons selected age group")
+)
+
+# Display the table
+knitr::kable(marriage_variables, caption = "Variables and their meanings for Marriage Data")
+
 ```
 
-Talk more about it.
+```{r}
+#| label: tbl-divorcevariables
+#| tbl-cap: Variables and their meanings for Divorce Data
+#| echo: false
+#| warning: false
 
-And also planes (@fig-planes). (You can change the height and width, but don't worry about doing that until you have finished every other aspect of the paper - Quarto will try to make it look nice and the defaults usually work well once you have enough text.)
+divorce_variables <- data.frame(
+  Variable = c("year", "divorce_num", "divorce_crude", "divorce_rate", "divorce_age", "divorce_30", "divorce_50", 
+               "divorce_marriage_mean", "divorce_marriage_median", "divorce_proceeding", "divorce_application"),
+  Description = c("Years between 1991 to 2020", 
+                  "Total number of divorces", 
+                  "Divorce rate per 1000 population", 
+                  "Divorce rate per 1000 married persons", 
+                  "Age-standardized divorce rate per 1000 married persons",
+                  "30-year total divorce rate per 1000 marriages",
+                  "50-year total divorce rate per 1000 marriages",
+                  "Mean duration of marriage - Year",
+                  "Median duration of marriage - Year",
+                  "Median duration of divorce proceedings - Month",
+                  "Proportion of divorce applications that are filed jointly - Percentage")
+)
+
+
+# Display the table
+knitr::kable(divorce_variables, caption = "Variables and their meanings for Divorce Data")
+```
+
+### Divorce and Marriage
+
+Divorce statistics are valuable indicators of family dynamics since most couples marry at some point, making divorce a common potential outcome.
+Understanding trends of divorce provide unique insights on potential reasons and influences by social, economic, legal, and cultural trends.
+From 1970 to late 1980s, the number of divorces in Canada increased sharply that may have been driven from a variety of factors such as the increasing economic independence of women [@cbc_history_2024].
+Equally important was the creation of the Divorce Act, 1968 and amendments made in 1986 that made it easier to obtain a divorce.
+However, since the early 1990s, divorce rates have declined notably until 2020.
+Here below (@fig-1) shows the total number of divorces in Canada per year between 1970-2020.
 
 ```{r}
-#| label: fig-planes
-#| fig-cap: Relationship between wing length and width
+#| label: fig-1
+#| fig-cap: Number of Divorces between 1970-2020
+#| echo: false
+
+ggplot(divorce_clean, aes(x = year, y = divorce_num)) +
+  geom_line(color = "blue") +
+  geom_point(color = "red") +
+  labs(title = "Number of Divorces Per Year",
+       x = "Year",
+       y = "Number of Divorces") +
+  theme_minimal()
+
+summary(divorce_clean$divorce_num)
+
+```
+
+The number of divorces in Canada has decreased since the early 1990s, dropping from 78,954 in 1991 to around 56,937 by 2019.
+In 2020, the number of divorces drop to 42,933, marking the lowest level since 1973.
+This decline was likely due to the COVID-19 pandemic where many people got divorced during the pandemic [@divorce_trend].
+(@fig-1) shows us the distribution of divorce data overtime, the lowest number recorded is 29,301 divorces, while the first quartile is 61,154, meaning 25% of the years had fewer divorces than this.
+The third quartile (75th percentile) is 73,160, suggesting that 75% of the years had fewer than this number.
+The maximum value is 97,773, marking the highest recorded number of divorces.
+Overall, these figures suggest that the divorce rate has fluctuated within a specific range over time but remained relatively stable within that band.
+
+```{r}
+#| label: fig-2
+#| fig-cap: Divorce and Marriage Rate per 1000 Persons (1991-2020)
+#| echo: false
+
+# Merge the two datasets by year
+combined_data <- merge(marriage_clean, divorce_clean, by = "year")
+
+# Create the combined plot
+ggplot(combined_data) +
+  geom_line(aes(x = year, y = total_mRate), color = "blue", size = 1) + # Marriage rate line
+  geom_point(aes(x = year, y = total_mRate), color = "blue", size = 3) +  # Points for marriage rate
+  geom_line(aes(x = year, y = divorce_rate), color = "red", size = 1) +    # Divorce number line
+  geom_point(aes(x = year, y = divorce_rate), color = "red", size = 3) +   # Points for divorce number
+  labs(
+    title = "Marriage and Divorce Rates Over Time",
+    x = "Year",
+    y = "Rate / Number",
+    caption = "Blue: Marriage Rate, Red: Divorce Numbers"
+  ) +
+  theme_minimal() +
+  theme(plot.title = element_text(hjust = 0.5))  # Center title
+
+# Summary of the entire combined dataset
+summary(combined_data)
+
+# Summary of specific columns (e.g., marriage rate and divorce rate)
+summary(combined_data$total_mRate)
+summary(combined_data$divorce_rate)
+
+```
+
+The conjugal situation of couples in Canada has evolved significantly over time.
+As the number of divorces has gradually fallen so has the divorce rate (the number of persons who divorce in a given year per 1,000 married persons).
+Dropping from 12.7 per 1,000 in 1991 to 7.5 per 1,000 in 2019, reflecting a significant decline in divorce occurrences over this period.
+The decline in the proportion of couples who marry does not necessarily mean that more people are single or living alone.
+Instead, it reflects the ongoing evolution of relationship types in response to social, economic, cultural, and legal changes.
+Marriage was once the dominant norm, viewed by many as the only legitimate way to form and maintain a family.
+However, for many couples today, marriage is no longer a requirement for cohabitation or having children.
+The increasing prevalence of common-law unions has further diversified the ways in which people form families, offering more flexible pathways for family formation.
+
+In (@fig-2) marriage rate starts relatively low at 11.8 and gradually increases, reaching 35.2.
+With the mean of 23.29 indicating an overall increase over time.
+While on the other hand, divorce rate starts at 5.6 and reaching a maximum of 13.0, with the mean of 10.39, suggesting a gradual but steady rise.
+While both rates show upward trends, the marriage rate shows more variation than the divorce rate, meaning that there were more fluctuations in marriage patterns over time.
+
+### Marriage and Age Range
+
+Over time, Canadians who are married have become older during this period, while younger generations are opting for common-law unions instead of getting married [@divorce_trend].
+With older adults making up for a larger portion of the married population compared to younger people.
+Below in (@fig-3) show the comparison between marriage rates per age group over the course of 1991 to 2020.
+
+```{r}
+#| label: fig-3
+#| fig-cap: Relationship between Age and Marriage (1991-2020)
 #| echo: false
 #| warning: false
 #| message: false
 
-analysis_data <- read_csv(here::here("data/02-analysis_data/analysis_data.csv"))
+# Data transformation: pivot to long format and clean 'age_group' names
+data_long <- marriage_clean |> 
+  select(year, ends_with("mRate")) |> 
+  pivot_longer(
+    cols = -year,
+    names_to = "age_group",
+    values_to = "marriage_rate"
+  ) |> 
+  mutate(age_group = str_remove(age_group, "_rate"))
 
-analysis_data |> 
-  ggplot(aes(x = width, y = length)) +
-  geom_point(alpha = 0.8) +
-  theme_minimal() +
-  labs(x = "Wing width (mm)",
-       y = "Wing length (mm)")
+
+# Plotting line graph with filled color
+ggplot(data_long, aes(x = year, y = marriage_rate, color = age_group, group = age_group)) + 
+  geom_line(size = 1) +  # Line plot with different colors for each age group
+  geom_point(size = 1) +  # Add points for visibility
+  labs(
+    title = "Marriage Rate per 1,000 Married Persons by Age Range (1991-2014)",
+    x = "Year",
+    y = "Marriage Rate per 1,000",
+    color = "Age Range"
+  ) + 
+  theme_minimal() + 
+  theme(
+    plot.title = element_text(hjust = 0.5),
+    legend.position = "bottom"
+  )
+
+# Summary of the entire dataset
+summary(data_long)
+
+# Summary of specific variables (e.g., marriage_rate)
+summary(data_long$marriage_rate)
+
+
 ```
 
-Talk way more about it. 
+Marriage rate reveal a significant variation across different age groups over time with the minimum marriage rate being very low at 0.50, while the maximum is high at 83.1.
+Indicating that some groups or years had significantly lower or higher rates.
+The median marriage rate is 14.00, and the mean is 19.22, suggesting that marriage rates have been generally moderate over the years, with a slight skew toward higher values.
+The interquartile range from 4.20 to 27.10, show that most values are clustered within a certain range, though extreme values exist.
 
-## Predictor variables
+# Model {#model}
 
-Add graphs, tables and text.
-
-Use sub-sub-headings for each outcome variable and feel free to combine a few into one if they go together naturally.
-
-
-
-
-
-
-
-
-# Model
-
-The goal of our modelling strategy is twofold. Firstly,...
-
-Here we briefly describe the Bayesian analysis model used to investigate... Background details and diagnostics are included in [Appendix -@sec-model-details].
+Here we briefly describe the Bayesian analysis model used to investigate the relationship between divorce and marriage rates as well as how age range plays part into marriage.
+Background details and diagnostics are included in [Appendix -@sec-model-details].
 
 ## Model set-up
 
-Define $y_i$ as the number of seconds that the plane remained aloft. Then $\beta_i$ is the wing width and $\gamma_i$ is the wing length, both measured in millimeters.  
+The first model examines how divorce rates are influenced by total marriage rates and year.
 
-\begin{align} 
-y_i|\mu_i, \sigma &\sim \mbox{Normal}(\mu_i, \sigma) \\
-\mu_i &= \alpha + \beta_i + \gamma_i\\
-\alpha &\sim \mbox{Normal}(0, 2.5) \\
-\beta &\sim \mbox{Normal}(0, 2.5) \\
-\gamma &\sim \mbox{Normal}(0, 2.5) \\
-\sigma &\sim \mbox{Exponential}(1)
-\end{align}
+Where:
 
-We run the model in R [@citeR] using the `rstanarm` package of @rstanarm. We use the default priors from `rstanarm`.
+-   $d_i$ is the divorce rate for the i-th observation
 
+-   $m_i$ is the marriage rate for the i-th observation
+
+-   $year_i$ is the year of observation
+
+-   $\beta_0$ is the intercept that represents the baseline of the divorce rate
+
+-   $\beta_1$ is the coefficient for the marriage rate, showing how much the divorce rate changes with a change in the marriage rate
+
+-   $\beta_2$ is the coefficient for the year, indicating the trend in divorce rates over time
+
+-   $\epsilon_i$ is the error term, assumed to follow a normal distribution with mean zero and variance
+
+The second model predicts the total marriage rate based on year and marriage rates by different age groups.
+This model helps us understand how marriage trends vary across different age groups and how these affect the overall marriage rate.
+
+
+Where:
+
+-   $m_i$ is the marriage rate for the i-th observation
+
+-   $\mbox{age range}_i$ represents the marriage rate for the j-th age group for the i-th observation
+
+-   $\beta_0$ is the intercept
+
+-   $\beta_1$ is the coefficient for year, showing trend over time
+
+-   $\beta_j$ are the coefficients for each age group’s marriage rate, indicating how each group influences the total marriage rat
+
+-   $\epsilon_i$ is the error term
+
+We run the model in R [@citeR] using the `rstanarm` package of @rstanarm.
+We use the default priors from `rstanarm`.
 
 ### Model justification
 
-We expect a positive relationship between the size of the wings and time spent aloft. In particular...
+The choice of a Gaussian distribution for the outcome variable is appropriate, as the total marriage rate is a continuous and normally distributed variable.
+By using this model, the paper investigates not just the temporal trends in marriage rates, but also how marriage rates for specific age groups contribute to the overall trend.
 
-We can use maths by including latex between dollar signs, for instance $\theta$.
+The first model aims to explore the relationship between divorce rates and marriage rates, considering how time influences these rates.
+It uses Bayesian regression.
+The dependent variable here is the divorce rate that is assumed to follow a normal distribution, while the independent variable is the marriage rate and year.
+This model is to make predictions on the divorce rate based on given the marriage rates and year that are both potential influences to divorce rates.
+The year variable allows to account for temporal trend in divorce rates that help to capture any long-term changes over time.
+While the marriage rates helps access whether higher marriage rates are associated with higher divorce rates, being able to see the correlation between them.
 
+The second model predicts the marriage rate using both time and marriage rates from different age groups.
+This model is important because marriage rates vary by age, and considering age groups provides a more detailed view of marriage trends.
+The dependent variable is the total marriage rates that are compared to the independent variables of year and marriage rates of different age groups.
+Marriage rates within each age group are linearly related to the total marriage rate.
+This allows the model to incorporate how societal marriage patterns are shifting within different age demographics.
 
-# Results
-
-Our results are summarized in @tbl-modelresults.
+# Results {#results}
 
 ```{r}
 #| echo: false
@@ -153,12 +342,18 @@ library(rstanarm)
 
 first_model <-
   readRDS(file = here::here("models/first_model.rds"))
+
+second_model <-
+  readRDS(file = here::here("models/second_model.rds"))
 ```
+
+Results summarized in @tbl-model1results for the first model indicate that divorce rates, ranging from 5.6 to 13.0, have a mean of 10.39 and a median of 10.85, suggesting that divorce rates have remained relatively stable.
+While there has been a general upward trend in divorce rates over the years, this increase has been less dramatic compared to marriage rates, indicating that marriage stability has somewhat improved in recent years.
 
 ```{r}
 #| echo: false
 #| eval: true
-#| label: tbl-modelresults
+#| label: tbl-model1results
 #| tbl-cap: "Explanatory models of flight time based on wing width and wing length"
 #| warning: false
 
@@ -171,31 +366,97 @@ modelsummary::modelsummary(
 )
 ```
 
+Based on our results in the second model which are summarized @tbl-model2results, we see that marriage rates have shown notable variability across age groups.With a minimum rate at 0.50 and the maximum at 83.10.
+The median marriage rate is 14.00, while the mean is slightly higher at 19.22, indicating a general upward trend in marriage rates in recent years.
+The highest marriage rates are observed among younger adults, particularly those in the 20-24 age group, though significant fluctuations across different age groups have been seen over time.
 
+When examining marriage and divorce rates together from 1991 to 2020, both rates show a trend toward greater stability in recent years, with more fluctuation in earlier years.
+Marriage rates, particularly among the 20-24 age group, have increased, while divorce rates have not seen as sharp an increase, pointing to improvements in marriage stability in recent years.
 
+Graphical representations of these trends, with the blue line representing marriage rates and the red line representing divorce rates, clearly illustrate the periods of rise and fall in both metrics, reflecting broader socio-economic and cultural shifts.
 
-# Discussion
+Overall, statistical analysis reveals clear patterns in both marriage and divorce rates, and further regression analysis can provide deeper insights into the relationships between these rates and the factors influencing them over time.
 
-## First discussion point {#sec-first-point}
+```{r}
+#| echo: false
+#| eval: true
+#| label: tbl-model2results
+#| tbl-cap: "Explanatory models of flight time based on wing width and wing length"
+#| warning: false
 
-If my paper were 10 pages, then should be be at least 2.5 pages. The discussion is a chance to show off what you know and what you learnt from all this. 
+modelsummary::modelsummary(
+  list(
+    "Second model" = second_model
+  ),
+  statistic = "mad",
+  fmt = 2
+)
+```
 
-## Second discussion point
+```{}
+```
 
-Please don't use these as sub-heading labels - change them to be what your point actually is.
+# Discussion {#discussion}
 
-## Third discussion point
+This paper examines the relationship between divorce rates and marriage rates, focusing on the effects of age-specific marriage rates and temporal changes over the years.
+Two key models are developed: the first predicts divorce rates using total marriage rates and the year as predictors, while the second predicts total marriage rates based on age-specific marriage rates and year, using a Bayesian regression model.
+The paper aims to understand broader trends in marriage and divorce and how societal shifts may influence divorce rates over time.
+
+## Relationship between marriage and divorce rates
+
+A key finding is the impact of marriage rates on divorce rates.
+The first model reveals that total marriage rates have a small but statistically significant effect on divorce rates.
+As marriage rates increase, divorce rates also tend to rise, though modestly.
+This suggests that trends in marriage are linked to changes in divorce patterns.
+However, the small effect size implies that marriage rates alone cannot explain the variation in divorce rates.
+Other factors such as societal attitudes, economic conditions, or policy changes may also play a significant role in influencing divorce rates.
+For instance, the divorce act implemented in 1986 and COVID-19 play big factors in the rates.
+This highlights the complexity of divorce as a social phenomenon, which cannot be fully understood by simply looking at marriage rates.
+
+Another significant finding is the influence of age-specific marriage rates on overall marriage trends.
+The second model shows that marriage rates among younger age groups, particularly those aged 20-24, have a stronger positive association with the total marriage rate than older age groups.
+This suggests that shifts in marriage behavior among younger individuals may have a disproportionately large effect on overall marriage trends.
+It provides valuable information in which could be crucial for understanding generational changes in marriage behavior and informing policies addressing age-related marriage trends.
+Such as the increase of in common relationships, where people are no longer seeking validation in marriages but rather marriages is no longer seen as a norm.
+Moreover, marriage rates for younger ages show a broader societal shifts, such as delayed marriage or changes in family structures.
+This insight could be pivotal in designing public policies or interventions that target younger populations to influence overall marriage trends.
+It also indicates that younger generations’ marriage decisions are more dynamic and subject to greater shifts, potentially due to evolving social, economic, or cultural factors.
+This can help policymakers understand where efforts to influence marriage rates might be most effective.
 
 ## Weaknesses and next steps
 
-Weaknesses and next steps should also be included.
+While this paper offers valuable insights, there are some weaknesses to consider.
+First, the assumption of linear relationships between the predictors and outcomes, which may oversimplify the complexities of the data.
+This assumption could oversimplify the data, as it does not account for potential non-linear relationships or varying influences of time.
+For example, the effect of year might not be constant throughout the entire period, with certain time periods showing stronger or weaker effects on marriage and divorce trends.
+Additionally, the models do not capture for potential interaction effects between age groups or between marriage rates and other social variables like employment or education, which could provide more nuanced explanations.
+Including such interactions can provide a more balanced understanding of these rates.
+Another limitation is the lack of consideration of potentional feedback loops between marriage rates and divorce rates.
+The models assume that marriage and divorce rates are independent, but in reality, they may influence each other in a cyclical relationship.
+For instance, an increase in divorce rates might lead to a decrease in marriage rates in subsequent years.
+Capturing this feedback loop could significantly enhance the accuracy of the model and provide deeper insights into the dynamics of marriage and divorce.
+
+Future research on marriage and divorce trends could be significantly enhanced by addressing several key areas of investigation.
+First, incorporating non-linear relationships into the models could offer a more nuanced understanding of the interactions between marriage rates, divorce rates, and year.
+Currently, the models assume linear relationships, which may oversimplify the complexity of these dynamics.
+Another important idea for future research is the inclusion of additional socio-economic variables such as income, education, and employment status, that likely play a role in shaping marriage and divorce patterns.
+By incorporating these socio-economic variables, future studies could provide a more comprehensive understanding of the drivers behind changes in marriage and divorce trends.
+For example, the increasing rates of higher education and employment among women in many countries may have distinct effects on marriage rates, while economic downturns or prosperity may similarly influence both marriage and divorce decisions.
+.
+
+Moreover, the relationship between age-specific marriage rates and the overall marriage rate may depend on broader social or economic conditions that vary over time.
+For instance, shifts in societal attitudes toward marriage or changes in employment opportunities for different age groups could interact with marriage trends, affecting how age-specific marriage rates contribute to overall marriage behavior.
+Exploring these interactions could uncover deeper insights into the factors driving changes in marriage and divorce rates and help refine the models used to predict them.
+In addition, we can also add statistics on in common relationships and how they affect marriages and divorces with positive or negative correlation.
+
+By addressing these limitations and expanding the scope of analysis, future research has the potential to provide deeper insights into the complexities of marriage and divorce behavior.
+These improvements could lead to more accurate models that better reflect the evolving dynamics of marriage and divorce trends, ultimately informing policies that effectively address these social phenomena.
 
 \newpage
 
 \appendix
 
-# Appendix {-}
-
+# Appendix {.unnumbered}
 
 # Additional data details
 
@@ -203,9 +464,11 @@ Weaknesses and next steps should also be included.
 
 ## Posterior predictive check
 
-In @fig-ppcheckandposteriorvsprior-1 we implement a posterior predictive check. This shows...
+In @fig-ppcheckandposteriorvsprior-1 we implement a posterior predictive check.
+This shows...
 
-In @fig-ppcheckandposteriorvsprior-2 we compare the posterior with the prior. This shows... 
+In @fig-ppcheckandposteriorvsprior-2 we compare the posterior with the prior.
+This shows...
 
 ```{r}
 #| eval: true
@@ -217,6 +480,12 @@ In @fig-ppcheckandposteriorvsprior-2 we compare the posterior with the prior. Th
 #| fig-cap: "Examining how the model fits, and is affected by, the data"
 #| fig-subcap: ["Posterior prediction check", "Comparing the posterior with the prior"]
 
+divorce_rate_data <- divorce_clean |> select(year, divorce_rate)
+marriage_rate_data <- marriage_clean |> select(year, total_mRate)
+combined_rate_data <- merge(divorce_rate_data, marriage_rate_data, by = "year", all = TRUE)
+combined_rate_data <- combined_rate_data |> drop_na()
+
+# Create plots separately, one for each model and each type of check
 pp_check(first_model) +
   theme_classic() +
   theme(legend.position = "bottom")
@@ -226,13 +495,31 @@ posterior_vs_prior(first_model) +
   scale_color_brewer(palette = "Set1") +
   theme(legend.position = "bottom") +
   coord_flip()
+
+pp_check(second_model) +
+  theme_classic() +
+  theme(legend.position = "bottom")
+
+posterior_vs_prior(second_model) +
+  theme_minimal() +
+  scale_color_brewer(palette = "Set1") +
+  theme(legend.position = "bottom") +
+  coord_flip()
+
+
+
+
 ```
 
 ## Diagnostics
 
-@fig-stanareyouokay-1 is a trace plot. It shows... This suggests...
+@fig-stanareyouokay-1 is a trace plot.
+It shows...
+This suggests...
 
-@fig-stanareyouokay-2 is a Rhat plot. It shows... This suggests...
+@fig-stanareyouokay-2 is a Rhat plot.
+It shows...
+This suggests...
 
 ```{r}
 #| echo: false
@@ -247,13 +534,12 @@ posterior_vs_prior(first_model) +
 plot(first_model, "trace")
 
 plot(first_model, "rhat")
+
+plot(second_model, "trace")
+
+plot(second_model, "rhat")
 ```
-
-
 
 \newpage
 
-
 # References
-
-
